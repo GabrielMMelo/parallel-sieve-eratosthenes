@@ -23,15 +23,13 @@
 #include <math.h>
 
 
-struct numero{
-    //int numero;
+typedef struct {
     bool marcado;
-} numero_default = {false};
+} numero_t;
 
-typedef struct numero numero_t;
 
 typedef struct {
-    int *k;
+    int *k;             // TODO: k não é necessario aqui!
     numero_t *numero;
     int limit;
     int atual;
@@ -45,15 +43,16 @@ bool is_multiplo(int numero, int k){
 
 void *thread(void *argv){
     Arg *a = (Arg*) argv;
-    *a->k = a->atual;
+
+    int k = a->atual;
 
     printf("O atual é igual a: %i\n", a->atual);
-    int i = (int) *a->k + 1;
-    printf("Valor de K: %i\n", *(a->k));
+    int i = k + 1;
+    printf("Valor de K: %i\n", k);
     printf("Thread id: %li\n", pthread_self());
-    while ((i * i) <= a->limit){
-        if(is_multiplo(i, (*a->k))){
-            printf("%i é multiplo de %i\n", i, *a->k);
+    while (i <= a->limit){
+        if(is_multiplo(i, k)){
+            printf("%i é multiplo de %i\n", i, k);
             a->numero[i].marcado = 1; 
         }
         i++;
@@ -67,7 +66,7 @@ int main(){
     *k = 2;
 
     // Declara a list de numeros
-    numero_t *list = (numero_t*) malloc(sizeof(numero_t)*(n+1));
+    numero_t *list = (numero_t*) malloc(sizeof(numero_t)*n);
     
     printf("Digite o n:\n");
     scanf("%i", &n);
@@ -83,11 +82,8 @@ int main(){
     }
     */
 
-    // Define a constante do numero de threads
     const int NUM_THREADS = sqrt(n);
     printf("Número de threads: %i\n",  NUM_THREADS);
-
-    // Array de threads
     pthread_t threads[NUM_THREADS];
 
     Arg *a = (Arg*) malloc(sizeof(Arg));
@@ -96,37 +92,30 @@ int main(){
     a->limit = n;
     int i = 3;
 
-    for(int i = 2; i < n; i++){
-        printf("%i:%i\n", i, list[i].marcado);
-    }
-
     while (i <= n){
         if(!is_multiplo(i, (*a->k))){
-            /*
-            if(i <= NUM_THREADS){
+            
+            if(i <= NUM_THREADS+1){
                 a->atual = i;
-                printf("O atual é igual a: %i\n", a->atual);
                 int rc = pthread_create(&threads[i-3], NULL, thread, a);
                 if (rc){
                     printf("ERROR; return code from pthread_create() is: %i\n", rc);
                     exit(-1);
                 }
             }
-            */
         }
         else{
             printf("%i é multiplo de %i\n", i, *a->k);
             a->numero[i].marcado = true; 
         }
-        printf("%i:%i\n", i, a->numero[i].marcado);
+
+        printf("%i\n", a->atual);
         i++;
     }
 
-   /* 
     for(int i = 2; i < n; i++){
         printf("%i:%i\n", i, list[i].marcado);
     }
-    */
-    
+        
     pthread_exit(NULL);
 }
