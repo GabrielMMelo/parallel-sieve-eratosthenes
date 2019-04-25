@@ -18,10 +18,11 @@
 
 // TODO: remove unnecessary printfs
 
-typedef struct {
+struct number {
     bool checked;
-} number_t;
+} default_number = {false};
 
+typedef struct number number_t;
 
 typedef struct {
     number_t *number;
@@ -59,7 +60,7 @@ void *_thread(void *argv){
     while (i <= a->limit){
 //        if(is_multiple(i, base)){
         if(is_multiple(i, base) && (!a->shared->number[i].checked)){
-            printf("%i é multiplo de %i\n", i, base);
+//            printf("%i é multiplo de %i\n", i, base);
             a->shared->number[i].checked = 1; 
         }
         i++;
@@ -71,31 +72,26 @@ int main(){
     int n;
     int base = 2;
 
-    number_t *list = malloc(sizeof(number_t)*n);
-    
+    number_t *list = malloc(sizeof(number_t)*(n+30));  // TODO: CONFERIR MALLOC. GAMBIARRA PARA RESOLVER.
     printf("Type the n (the last number to verify):\n");
     scanf("%i", &n);
 
-    for(int i = 0; i < n; i++){
-        list[i].checked = false;
-    }
-
-    const int NUMBER_THREADS = sqrt(n);
-    printf("Threads count: %i\n",  NUMBER_THREADS);
-    pthread_t threads[NUMBER_THREADS];
+    const int MAX_NUMBER_THREADS = sqrt(n);
+    printf("Threads count: %i\n",  MAX_NUMBER_THREADS);
+    pthread_t threads[MAX_NUMBER_THREADS];
 
     shared_t *shared = malloc(sizeof(shared_t));
     shared->number = list;
     int i = 3;
     int thread_counter = 0;
-    Arg a[NUMBER_THREADS];
-    for(int j = 0; j < NUMBER_THREADS; j++){
+    Arg a[MAX_NUMBER_THREADS];
+    for(int j = 0; j < MAX_NUMBER_THREADS; j++){
         a[j].shared = shared;
     }
 
     while (i <= n){
         if(!is_multiple(i, base)){
-            if(i <= NUMBER_THREADS){
+            if(i <= MAX_NUMBER_THREADS){
                 a[thread_counter].limit = n;
                 a[thread_counter].actual = i;
                 int rc = pthread_create(&threads[thread_counter], NULL, _thread, &a[thread_counter]);
@@ -109,7 +105,7 @@ int main(){
         else{
             if(!shared->number[i].checked){
                 shared->number[i].checked = 1; 
-                printf("%i é multiplo de %i\n", i, base);
+//                printf("%i é multiplo de %i\n", i, base);
             }
         }
 
@@ -122,7 +118,7 @@ int main(){
     
     for(int j = 2; j <= n; j++){
         if(shared->number[j].checked == 0)
-            printf("%i:primo\n", j);
+            printf("%i:%d\n", j, shared->number[j].checked);
         else
             printf("%i\n", j);
     }
