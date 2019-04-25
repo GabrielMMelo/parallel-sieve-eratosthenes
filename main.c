@@ -25,8 +25,12 @@ typedef struct {
 
 typedef struct {
     number_t *number;
+} shared_t;
+
+typedef struct {
     int limit;
     int actual;
+    shared_t* shared;
 } Arg;
 
 bool is_multiple(int actual, int base){
@@ -46,7 +50,6 @@ void delay(int microseconds){
 void *_thread(void *argv){
     Arg *a = (Arg*) argv;
 
-    printf("PORRA %i\n", a->actual);
     int base = a->actual;
 
     printf("O atual é igual a: %i\n", a->actual);
@@ -54,9 +57,10 @@ void *_thread(void *argv){
     printf("Valor de K: %i\n", base);
     printf("Thread id: %li\n", pthread_self());
     while (i <= a->limit){
-        if(is_multiple(i, base)){
+//        if(is_multiple(i, base)){
+        if(is_multiple(i, base) && (!a->shared->number[i].checked)){
             printf("%i é multiplo de %i\n", i, base);
-            a->number[i].checked = 1; 
+            a->shared->number[i].checked = 1; 
         }
         i++;
     }
@@ -67,7 +71,7 @@ int main(){
     int n;
     int base = 2;
 
-    number_t *list = (number_t*) malloc(sizeof(number_t)*n);
+    number_t *list = malloc(sizeof(number_t)*n);
     
     printf("Type the n (the last number to verify):\n");
     scanf("%i", &n);
@@ -79,42 +83,57 @@ int main(){
     const int NUMBER_THREADS = sqrt(n);
     printf("Threads count: %i\n",  NUMBER_THREADS);
     pthread_t threads[NUMBER_THREADS];
-    int last_thread;
 
-    Arg *a = (Arg*) malloc(sizeof(Arg));
-    a->number = list;
-    a->limit = n;
+    shared_t *shared = malloc(sizeof(shared_t));
+    shared->number = list;
     int i = 3;
+    int thread_counter = 0;
+    Arg a[NUMBER_THREADS];
+    for(int j = 0; j < NUMBER_THREADS; j++){
+        a[j].shared = shared;
+    }
 
     while (i <= n){
         if(!is_multiple(i, base)){
             if(i <= NUMBER_THREADS){
-                a->actual = i;
-                last_thread = i-3;
-                int rc = pthread_create(&threads[i-3], NULL, _thread, a);
-                delay(100);  // 150 microseconds to make sure that thread received the properly a->actual value
+                a[thread_counter].limit = n;
+                a[thread_counter].actual = i;
+                int rc = pthread_create(&threads[thread_counter], NULL, _thread, &a[thread_counter]);
                 if (rc){
                     printf("ERROR; return code from pthread_create() is: %i\n", rc);
                     exit(-1);
                 }
+                thread_counter++;
             }
         }
         else{
-            printf("%i é multiplo de %i\n", i, base);
-            a->number[i].checked = true; 
+            if(!shared->number[i].checked){
+                shared->number[i].checked = 1; 
+                printf("%i é multiplo de %i\n", i, base);
+            }
         }
 
         i++;
     }
 
-    // TODO: ADD a call to pthread_join(XXX,NULL);
-    pthread_join(threads[last_thread], NULL);
+    for(int j = 0; j < thread_counter; j++){
+        pthread_join(threads[j], NULL);
+    }
     
+    for(int j = 2; j <= n; j++){
+        if(shared->number[j].checked == 0)
+            printf("%i:primo\n", j);
+        else
+            printf("%i\n", j);
+    }
+
+    /*
     printf("Prime numbers:\n");
     for(int i = 2; i <= n; i++){
-        if(!list[i].checked)
+        if(!shared->number[i].checked)
             printf("| %i ", i);
     }
+    */
         
     pthread_exit(NULL);
 }
