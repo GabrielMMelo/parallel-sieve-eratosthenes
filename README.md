@@ -5,6 +5,6 @@ A C parallel implementation of the algorithm for finding prime numbers using `<p
 ## Usage 
 
 ```
-gcc -pthread crivo.c -lm
+gcc -pthread main.c -lm
 ./a.out
 ```
