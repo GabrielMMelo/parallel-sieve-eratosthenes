@@ -79,6 +79,7 @@ int main(){
     const int NUMBER_THREADS = sqrt(n);
     printf("Threads count: %i\n",  NUMBER_THREADS);
     pthread_t threads[NUMBER_THREADS];
+    int last_thread;
 
     Arg *a = (Arg*) malloc(sizeof(Arg));
     a->number = list;
@@ -89,8 +90,9 @@ int main(){
         if(!is_multiple(i, base)){
             if(i <= NUMBER_THREADS){
                 a->actual = i;
+                last_thread = i-3;
                 int rc = pthread_create(&threads[i-3], NULL, _thread, a);
-                delay(1000);  // 150 microseconds to make sure that thread received the properly a->actual value
+                delay(100);  // 150 microseconds to make sure that thread received the properly a->actual value
                 if (rc){
                     printf("ERROR; return code from pthread_create() is: %i\n", rc);
                     exit(-1);
@@ -106,6 +108,7 @@ int main(){
     }
 
     // TODO: ADD a call to pthread_join(XXX,NULL);
+    pthread_join(threads[last_thread], NULL);
     
     printf("Prime numbers:\n");
     for(int i = 2; i <= n; i++){
