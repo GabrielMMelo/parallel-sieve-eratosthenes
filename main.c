@@ -13,7 +13,14 @@
 #include <stdlib.h>
 #include <stdbool.h>                                 // to use bool type
 #include <math.h>                                    // to use sqrt()
-#include <time.h>                                    // to implement delay() function
+
+#define DEBUG 0                                      // enables debug printf()
+
+#if DEBUG
+  #define SPAM(a) printf a
+#else
+  #define SPAM(a) (void)0
+#endif
 
 
 struct number {
@@ -36,31 +43,23 @@ bool is_multiple(int actual, int base){
     return actual % base == 0;
 }
 
-void delay(int microseconds){
-    long pause;
-    clock_t now,then;
-
-    pause = microseconds*(CLOCKS_PER_SEC/1000000);
-    now = then = clock();
-    while( (now-then) < pause )
-        now = clock();
-}
 
 void *_thread(void *argv){
     Arg *a = (Arg*) argv;
     int base = a->actual;
     int i = base + 1;
 
-    //printf("Thread id: %li\n", pthread_self());
+    SPAM(("Thread id: %li\n", pthread_self()));
     while (i <= a->limit){
         if(is_multiple(i, base) && (!a->shared->number[i].checked)){
-            //printf("%i is multiple of %i\n", i, base);
+            SPAM(("%i is multiple of %i\n", i, base));
             a->shared->number[i].checked = 1; 
         }
         i++;
     }
     pthread_exit(NULL);
 }
+
 
 int main(){
     int n;
@@ -78,8 +77,8 @@ int main(){
     shared->number = list;
 
     const int MAX_NUMBER_THREADS = sqrt(n);
-    //printf("\nThreads count: %i\n",  MAX_NUMBER_THREADS);
-    //printf("--------------\n");
+    SPAM(("\nThreads count: %i\n",  MAX_NUMBER_THREADS));
+    SPAM(("--------------\n"));
  
     pthread_t threads[MAX_NUMBER_THREADS];
 
@@ -108,7 +107,7 @@ int main(){
         else{
             if(!shared->number[i].checked){
                 shared->number[i].checked = 1; 
-                //printf("%i is multiple of %i\n", i, base);
+                    SPAM(("%i is multiple of %i\n", i, base));
             }
         }
         i++;
