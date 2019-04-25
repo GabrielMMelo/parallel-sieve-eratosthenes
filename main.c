@@ -51,10 +51,10 @@ void *_thread(void *argv){
     int base = a->actual;
     int i = base + 1;
 
-    printf("Thread id: %li\n", pthread_self());
+    //printf("Thread id: %li\n", pthread_self());
     while (i <= a->limit){
         if(is_multiple(i, base) && (!a->shared->number[i].checked)){
-            printf("%i is multiple of %i\n", i, base);
+            //printf("%i is multiple of %i\n", i, base);
             a->shared->number[i].checked = 1; 
         }
         i++;
@@ -78,7 +78,9 @@ int main(){
     shared->number = list;
 
     const int MAX_NUMBER_THREADS = sqrt(n);
-    printf("Threads count: %i\n",  MAX_NUMBER_THREADS);
+    //printf("\nThreads count: %i\n",  MAX_NUMBER_THREADS);
+    //printf("--------------\n");
+ 
     pthread_t threads[MAX_NUMBER_THREADS];
 
     Arg a[MAX_NUMBER_THREADS];
@@ -88,6 +90,7 @@ int main(){
     
     int i = 3;
     int thread_counter = 0;
+
 
     while (i <= n){
         if(!is_multiple(i, base)){
@@ -105,7 +108,7 @@ int main(){
         else{
             if(!shared->number[i].checked){
                 shared->number[i].checked = 1; 
-                printf("%i is multiple of %i\n", i, base);
+                //printf("%i is multiple of %i\n", i, base);
             }
         }
         i++;
@@ -114,10 +117,13 @@ int main(){
     for(int j = 0; j < thread_counter; j++)
         pthread_join(threads[j], NULL);
     
-    printf("Prime numbers:\n");
+    printf("\nPrime numbers:\n");
+    printf("--------------\n");
+    
     for(int i = 2; i <= n; i++)
         if(!shared->number[i].checked)
             printf("| %i ", i);
-        
+    printf("|\n");    
+
     pthread_exit(NULL);
 }
